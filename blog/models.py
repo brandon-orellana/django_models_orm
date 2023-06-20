@@ -4,9 +4,12 @@ from django.utils import timezone
 
 #Topics Model
 class Topic(models.Model):
+    """
+    Represents a topic
+    """
     name = models.CharField(
         max_length=50,
-        unique=True
+        unique=True,
     )
     slug = models.SlugField(unique=True)
 
@@ -64,14 +67,42 @@ class Post(models.Model):
         """Publishes this post."""
         self.status = self.PUBLISHED
         self.published = timezone.now()
+        self.save()
 
     #To remove published status and timestamp (if applicable)
     def draft(self):
         """Removes published status and timestamp (if applicable)."""
         self.status = self.DRAFT
         self.published = None
+        self.save()
 
     class Meta:
         ordering = ['-created']
     def __str__(self):
         return self.title
+
+class Comment(models.Model):
+    """
+    Represents a comment
+    """
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255)
+    text = models.TextField(max_length=255)
+    approved = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def approve(self):
+        self.approved = True
+        self.save()
+
+    def __str__(self):
+        return self.text
+
+    class Meta:
+        ordering = ['-created']
